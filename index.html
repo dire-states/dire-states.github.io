@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>dire-states</title>
+  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='6' height='6' fill='%232563eb'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2393c5fd'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%2360a5fa'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23d03b3b'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f6f7f9;
+      --border: #d9dce1;
+      --text: #1c1f24;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14161a;
+        --panel: #1c1f24;
+        --border: #2e333a;
+        --text: #e6e8eb;
+        --muted: #9aa1ab;
+        --accent: #60a5fa;
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    main {
+      max-width: 40rem;
+      margin: 0 auto;
+      padding: 3rem 16px;
+    }
+
+    h1 { margin: 0; font-size: 1.5rem; }
+    h2 { margin: 0 0 0.25rem; font-size: 1.15rem; }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .tagline { margin: 0.25rem 0 2.5rem; color: var(--muted); }
+
+    .card {
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .card p { margin: 0 0 1rem; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+      gap: 0.75rem;
+      margin: 0 0 1.25rem;
+    }
+
+    .stat { display: flex; flex-direction: column; }
+    .stat dt { order: 2; font-size: 12px; color: var(--muted); }
+    .stat dd { order: 1; margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    .snapshot { margin: -0.75rem 0 1.25rem; font-size: 12px; color: var(--muted); }
+
+    .open {
+      display: inline-block;
+      margin: 0 0.5rem 1rem 0;
+      padding: 0.4rem 0.9rem;
+      border-radius: 4px;
+      background: var(--accent);
+      /* White on the light-mode blue, near-black on the lighter dark-mode blue. */
+      color: var(--bg);
+      font-weight: 500;
+    }
+
+    .open.secondary {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .links { margin: 0; padding: 0; list-style: none; font-size: 14px; }
+    .links li { padding: 0.15rem 0; }
+    .links .muted { color: var(--muted); }
+
+    footer { margin-top: 2.5rem; font-size: 13px; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>dire-states</h1>
+    <p class="tagline">Tools and open data for the Filecoin network.</p>
+
+    <section class="card">
+      <h2>sector-spiegel</h2>
+      <p>
+        How long do Filecoin sectors live? sector-spiegel tracks every live sector on mainnet and
+        calibnet, shows when each miner's sectors expire, and estimates when the network runs out of
+        them if nobody extends.
+      </p>
+
+      <!-- Filled from the latest mainnet snapshot; the card works without it. -->
+      <dl class="stats" id="stats" hidden>
+        <div class="stat"><dt>live sectors</dt><dd id="live"></dd></div>
+        <div class="stat"><dt>miners</dt><dd id="miners"></dd></div>
+        <div class="stat"><dt>network ends</dt><dd id="ends"></dd></div>
+      </dl>
+      <p class="snapshot" id="snapshot" hidden></p>
+
+      <a class="open" href="/filecoin-sector-spiegel/?net=mainnet">Open mainnet</a>
+      <a class="open secondary" href="/filecoin-sector-spiegel/">Open calibnet</a>
+
+      <ul class="links">
+        <li>Source: <a href="https://github.com/dire-states/filecoin-sector-spiegel">dire-states/filecoin-sector-spiegel</a></li>
+        <li>
+          Mainnet data: <a href="https://github.com/dire-states/filecoin-sector-spiegel-data-main">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-sector-spiegel-data-main/miners.json">miners.json</a>
+        </li>
+        <li>
+          Calibnet data: <a href="https://github.com/dire-states/filecoin-sector-spiegel-data-calibration">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-sector-spiegel-data-calibration/miners.json">miners.json</a>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <a href="https://github.com/dire-states">github.com/dire-states</a>
+    </footer>
+  </main>
+
+  <script>
+    // Headline numbers from the latest mainnet snapshot (epochs are 30 s after genesis).
+    fetch('/filecoin-sector-spiegel-data-main/miners.json')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((index) => {
+        const date = (epoch) => new Date((index.genesisTimestamp + epoch * 30) * 1000).toISOString().slice(0, 10)
+        const live = index.miners.reduce((sum, m) => sum + m.live, 0)
+        document.getElementById('live').textContent = live.toLocaleString('en-US')
+        document.getElementById('miners').textContent = index.miners.length.toLocaleString('en-US')
+        document.getElementById('ends').textContent = date(index.totals.lastExpiration)
+        document.getElementById('snapshot').textContent =
+          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}`
+        document.getElementById('stats').hidden = false
+        document.getElementById('snapshot').hidden = false
+      })
+      .catch(() => {})
+  </script>
+</body>
+</html>

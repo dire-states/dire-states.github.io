@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>dire-states</title>
-  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them.">
+  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them; message-mix shows what the chain is doing, by message type.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='6' height='6' fill='%232563eb'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2393c5fd'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%2360a5fa'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23d03b3b'/%3E%3C/svg%3E">
   <style>
     :root {
@@ -59,6 +59,8 @@
       background: var(--panel);
     }
 
+    .card + .card { margin-top: 1.25rem; }
+
     .card p { margin: 0 0 1rem; }
 
     .stats {
@@ -70,7 +72,7 @@
 
     .stat { display: flex; flex-direction: column; }
     .stat dt { order: 2; font-size: 12px; color: var(--muted); }
-    .stat dd { order: 1; margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .stat dd { order: 1; margin: 0; font-size: 1.15rem; font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
     .snapshot { margin: -0.75rem 0 1.25rem; font-size: 12px; color: var(--muted); }
 
@@ -135,6 +137,39 @@
       </ul>
     </section>
 
+    <section class="card">
+      <h2>message-mix</h2>
+      <p>
+        What is the Filecoin chain doing? message-mix counts every message on mainnet and calibnet by
+        the receiving actor type and method, such as <code>miner.SubmitWindowedPoSt</code> or
+        <code>evm.InvokeContract</code>, in hourly buckets, and shows the result as a time series you
+        can browse.
+      </p>
+
+      <!-- Filled from the latest mainnet index; the card works without it. -->
+      <dl class="stats" id="mm-stats" hidden>
+        <div class="stat"><dt>messages counted</dt><dd id="mm-messages"></dd></div>
+        <div class="stat"><dt>days covered</dt><dd id="mm-days"></dd></div>
+        <div class="stat"><dt>top method</dt><dd id="mm-top"></dd></div>
+      </dl>
+      <p class="snapshot" id="mm-snapshot" hidden></p>
+
+      <a class="open" href="/filecoin-message-mix/?net=mainnet">Open mainnet</a>
+      <a class="open secondary" href="/filecoin-message-mix/">Open calibnet</a>
+
+      <ul class="links">
+        <li>Source: <a href="https://github.com/dire-states/filecoin-message-mix">dire-states/filecoin-message-mix</a></li>
+        <li>
+          Mainnet data: <a href="https://github.com/dire-states/filecoin-message-mix-data-main">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-message-mix-data-main/daily.csv">daily.csv</a>
+        </li>
+        <li>
+          Calibnet data: <a href="https://github.com/dire-states/filecoin-message-mix-data-calibration">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-message-mix-data-calibration/daily.csv">daily.csv</a>
+        </li>
+      </ul>
+    </section>
+
     <footer>
       <a href="https://github.com/dire-states">github.com/dire-states</a>
     </footer>
@@ -154,6 +189,23 @@
           `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}`
         document.getElementById('stats').hidden = false
         document.getElementById('snapshot').hidden = false
+      })
+      .catch(() => {})
+
+    // Headline numbers from the mainnet message-mix index (totals per method over the covered heights).
+    fetch('/filecoin-message-mix-data-main/index.json')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((index) => {
+        const date = (epoch) => new Date((index.genesisTimestamp + epoch * 30) * 1000).toISOString().slice(0, 10)
+        const total = index.methods.reduce((sum, m) => sum + m.messages, 0)
+        const top = index.methods.reduce((a, b) => (b.messages > a.messages ? b : a))
+        document.getElementById('mm-messages').textContent = total.toLocaleString('en-US')
+        document.getElementById('mm-days').textContent = index.days.length.toLocaleString('en-US')
+        document.getElementById('mm-top').textContent = `${top.actor}.${top.method}`
+        document.getElementById('mm-snapshot').textContent =
+          `mainnet, ${date(index.fromHeight)} to ${date(index.toHeight)}, updated ${new Date(index.updatedAt).toUTCString()}`
+        document.getElementById('mm-stats').hidden = false
+        document.getElementById('mm-snapshot').hidden = false
       })
       .catch(() => {})
   </script>

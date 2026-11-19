@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>dire-states</title>
-  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them; message-mix shows what the chain is doing, by message type.">
+  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them; message-mix shows what the chain is doing, by message type; public-mpool shows what is waiting in the mainnet mempool right now.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='6' height='6' fill='%232563eb'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2393c5fd'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%2360a5fa'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23d03b3b'/%3E%3C/svg%3E">
   <style>
     :root {
@@ -167,6 +167,23 @@
           Calibnet data: <a href="https://github.com/dire-states/filecoin-message-mix-data-calibration">repo</a>
           <span class="muted">·</span> <a href="/filecoin-message-mix-data-calibration/daily.csv">daily.csv</a>
         </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>public-mpool</h2>
+      <p>
+        What's waiting to get on chain? public-mpool watches the Filecoin mainnet mempool through
+        public RPC nodes (Glif, Zondax, dRPC, Ankr) while the page is open. It lists pending messages
+        with their fees, age and full JSON, charts mempool size and premiums, measures how long
+        messages wait before inclusion, and shows how each node's mempool differs.
+      </p>
+      <p class="snapshot">Live only: nothing is stored, so it shows what happened since you opened it.</p>
+
+      <a class="open" href="/filecoin-public-mpool/">Open mainnet</a>
+
+      <ul class="links">
+        <li>Source: <a href="https://github.com/dire-states/filecoin-public-mpool">dire-states/filecoin-public-mpool</a></li>
       </ul>
     </section>
 

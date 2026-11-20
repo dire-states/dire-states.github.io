@@ -4,17 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>dire-states</title>
-  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them; message-mix shows what the chain is doing, by message type; public-mpool shows what is waiting in the mainnet mempool right now.">
+  <meta name="description" content="Filecoin network tools and data: sector-spiegel shows how long Filecoin sectors live and when the network runs out of them; message-mix shows what the chain is doing, by message type; fil-release shows when locked FIL is released; public-mpool shows what is waiting in the mainnet mempool right now.">
   <!-- Link previews (Slack, social sites). The image is a 1200×630 PNG; previews don't render SVG. -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="dire-states">
   <meta property="og:url" content="https://dire-states.github.io/">
   <meta property="og:title" content="dire-states: tools and open data for the Filecoin network">
-  <meta property="og:description" content="sector-spiegel: how long Filecoin sectors live. message-mix: what the chain is doing, by message type. public-mpool: what's waiting in the mainnet mempool right now.">
+  <meta property="og:description" content="sector-spiegel: how long Filecoin sectors live. message-mix: what the chain is doing, by message type. fil-release: when locked FIL unlocks. public-mpool: what's waiting in the mainnet mempool right now.">
   <meta property="og:image" content="https://dire-states.github.io/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="dire-states: sector-spiegel, message-mix and public-mpool">
+  <meta property="og:image:alt" content="dire-states: sector-spiegel, message-mix, fil-release and public-mpool">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='1' width='6' height='6' fill='%232563eb'/%3E%3Crect x='9' y='1' width='6' height='6' fill='%2393c5fd'/%3E%3Crect x='1' y='9' width='6' height='6' fill='%2360a5fa'/%3E%3Crect x='9' y='9' width='6' height='6' fill='%23d03b3b'/%3E%3C/svg%3E">
   <style>
@@ -182,6 +182,38 @@
     </section>
 
     <section class="card">
+      <h2>fil-release</h2>
+      <p>
+        When is locked FIL released? fil-release reads every miner's vesting block rewards and the
+        initial pledge of each live sector on mainnet and calibnet, and shows when they unlock: per
+        miner, per day, and for the whole network.
+      </p>
+
+      <!-- Filled from the latest mainnet snapshot; the card works without it. -->
+      <dl class="stats" id="fr-stats" hidden>
+        <div class="stat"><dt>FIL locked</dt><dd id="fr-locked"></dd></div>
+        <div class="stat"><dt>released in next 30 days</dt><dd id="fr-soon"></dd></div>
+        <div class="stat"><dt>miners</dt><dd id="fr-miners"></dd></div>
+      </dl>
+      <p class="snapshot" id="fr-snapshot" hidden></p>
+
+      <a class="open" href="/filecoin-fil-release/">Open mainnet</a>
+      <a class="open secondary" href="/filecoin-fil-release/?net=calibnet">Open calibnet</a>
+
+      <ul class="links">
+        <li>Source: <a href="https://github.com/dire-states/filecoin-fil-release">dire-states/filecoin-fil-release</a></li>
+        <li>
+          Mainnet data: <a href="https://github.com/dire-states/filecoin-fil-release-data-main">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-fil-release-data-main/miners.json">miners.json</a>
+        </li>
+        <li>
+          Calibnet data: <a href="https://github.com/dire-states/filecoin-fil-release-data-calibration">repo</a>
+          <span class="muted">·</span> <a href="/filecoin-fil-release-data-calibration/miners.json">miners.json</a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
       <h2>public-mpool</h2>
       <p>
         What's waiting to get on chain? public-mpool watches the Filecoin mainnet mempool through
@@ -234,6 +266,23 @@
           `mainnet, ${date(index.fromHeight)} to ${date(index.toHeight)}, updated ${new Date(index.updatedAt).toUTCString()}`
         document.getElementById('mm-stats').hidden = false
         document.getElementById('mm-snapshot').hidden = false
+      })
+      .catch(() => {})
+
+    // Headline numbers from the latest mainnet fil-release snapshot (FIL still vesting or pledged).
+    fetch('/filecoin-fil-release-data-main/miners.json')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.status)))
+      .then((index) => {
+        const fil = (n) => `${Math.round(n).toLocaleString('en-US')} FIL`
+        const locked = index.miners.reduce((sum, m) => sum + m.vesting + m.pledge, 0)
+        const soon = index.miners.reduce((sum, m) => sum + m.vesting30 + m.pledge30, 0)
+        document.getElementById('fr-locked').textContent = fil(locked)
+        document.getElementById('fr-soon').textContent = fil(soon)
+        document.getElementById('fr-miners').textContent = index.miners.length.toLocaleString('en-US')
+        document.getElementById('fr-snapshot').textContent =
+          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}`
+        document.getElementById('fr-stats').hidden = false
+        document.getElementById('fr-snapshot').hidden = false
       })
       .catch(() => {})
   </script>

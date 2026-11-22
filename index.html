@@ -246,7 +246,7 @@
         document.getElementById('miners').textContent = index.miners.length.toLocaleString('en-US')
         document.getElementById('ends').textContent = date(index.totals.lastExpiration)
         document.getElementById('snapshot').textContent =
-          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}`
+          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}; updated once a day`
         document.getElementById('stats').hidden = false
         document.getElementById('snapshot').hidden = false
       })
@@ -263,7 +263,7 @@
         document.getElementById('mm-days').textContent = index.days.length.toLocaleString('en-US')
         document.getElementById('mm-top').textContent = `${top.actor}.${top.method}`
         document.getElementById('mm-snapshot').textContent =
-          `mainnet, ${date(index.fromHeight)} to ${date(index.toHeight)}, updated ${new Date(index.updatedAt).toUTCString()}`
+          `mainnet, ${date(index.fromHeight)} to ${date(index.toHeight)}, updated ${new Date(index.updatedAt).toUTCString()}, once a day`
         document.getElementById('mm-stats').hidden = false
         document.getElementById('mm-snapshot').hidden = false
       })
@@ -280,7 +280,7 @@
         document.getElementById('fr-soon').textContent = fil(soon)
         document.getElementById('fr-miners').textContent = index.miners.length.toLocaleString('en-US')
         document.getElementById('fr-snapshot').textContent =
-          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}`
+          `mainnet snapshot at height ${index.height}, ${new Date(index.fetchedAt).toUTCString()}; updated once a day`
         document.getElementById('fr-stats').hidden = false
         document.getElementById('fr-snapshot').hidden = false
       })
